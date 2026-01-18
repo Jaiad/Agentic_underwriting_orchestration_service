@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Underwriting | RAG Engine</title>
+
+    <!-- React & DOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .animate-pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { Activity, Shield, FileText, Settings, Zap, CheckCircle, AlertTriangle } = lucide;
+
+        function App() {
+            const [email, setEmail] = useState("");
+            const [loading, setLoading] = useState(false);
+            const [result, setResult] = useState(null);
+            const [activeTab, setActiveTab] = useState("summary");
+            const [ragLogs, setRagLogs] = useState([]);
+
+            const handleProcess = async () => {
+                if (!email) return;
+                setLoading(true);
+                setRagLogs([]);
+                setResult(null);
+
+                // Simulate RAG steps for visual effect
+                addLog("🔍 Parsing Email entities with Gemini 2.0...");
+                await new Promise(r => setTimeout(r, 800));
+
+                addLog("📚 Retrieving Guidelines from Vector Store (FAISS)...");
+                await new Promise(r => setTimeout(r, 1200));
+
+                try {
+                    const response = await fetch('/api/process-rag-quote', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email_content: email })
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        addLog("⚡ Calculating Actuarial Premiums...");
+                        await new Promise(r => setTimeout(r, 800));
+                        addLog("✍️ Generating Quote Letter...");
+                        setResult(data.data);
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                } catch (e) {
+                    alert("Connection failed");
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const addLog = (msg) => {
+                setRagLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), msg }]);
+            };
+
+            const fillDemo = (type) => {
+                const demos = {
+                    construction: "Subject: Quote for Apex Builders\n\nHi,\nWe are Apex Builders based in Texas. We do commercial construction.\nRevenue is $12,500,000.\nWe have 45 employees.\nNeed GL and Auto coverage.",
+                    tech: "Subject: Quote for CyberFlow SaaS\n\nHello,\nWe are a tech startup, CyberFlow. Revenue $5M, fully remote team.\nLooking for comprehensive coverage including Cyber."
+                };
+                setEmail(demos[type]);
+            };
+
+            return (
+                <div className="min-h-screen p-8 bg-slate-50 text-slate-900">
+                    <div className="max-w-7xl mx-auto grid grid-cols-12 gap-8">
+
+                        {/* Header */}
+                        <div className="col-span-12 mb-4 flex items-center justify-between">
+                            <div>
+                                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                                    AI Underwriting Engine
+                                </h1>
+                                <p className="text-slate-500 font-medium">RAG-Powered • Gemini 2.0 Flash • Vector Search</p>
+                            </div>
+                            <div className="flex gap-3">
+                                <span className="px-3 py-1 bg-white text-emerald-600 rounded-full border border-emerald-200 text-sm font-mono flex items-center gap-2 shadow-sm">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    System Online
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Input Panel */}
+                        <div className="col-span-12 lg:col-span-4 space-y-4">
+                            <div className="glass-panel p-6 h-full border-l-4 border-blue-500 bg-white">
+                                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-slate-800">
+                                    <FileText size={20} className="text-blue-500" /> Submission
+                                </h2>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm text-slate-500 mb-1 block font-medium">Quick Load</label>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => fillDemo('construction')} className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs transition border border-slate-200">Construction</button>
+                                            <button onClick={() => fillDemo('tech')} className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs transition border border-slate-200">Tech/SaaS</button>
+                                        </div>
+                                    </div>
+
+                                    <textarea
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full h-64 bg-slate-50 border border-slate-200 rounded-lg p-4 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-slate-400 text-slate-800 shadow-inner"
+                                        placeholder="Paste broker email here..."
+                                    ></textarea>
+
+                                    <button
+                                        onClick={handleProcess}
+                                        disabled={loading}
+                                        className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all text-white ${loading
+                                                ? 'bg-slate-400 cursor-not-allowed'
+                                                : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-500/20'
+                                            }`}
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <Activity className="animate-spin" /> Processing...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Zap className="fill-current" /> Process Quote
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+
+                                {/* RAG Logs */}
+                                <div className="mt-8 bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 h-48 overflow-y-auto border border-slate-800 shadow-inner">
+                                    <div className="text-slate-500 mb-2 border-b border-slate-700 pb-1 font-semibold">SYSTEM LOGS</div>
+                                    {ragLogs.map((log, i) => (
+                                        <div key={i} className="mb-1 opacity-0 animate-[fadeIn_0.3s_forwards]" style={{ animationDelay: `${i * 100}ms` }}>
+                                            <span className="text-slate-500">[{log.time}]</span> {log.msg}
+                                        </div>
+                                    ))}
+                                    {loading && (
+                                        <div className="animate-pulse">_</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Output Panel */}
+                        <div className="col-span-12 lg:col-span-8">
+                            <div className="glass-panel h-full flex flex-col bg-white">
+                                <div className="border-b border-slate-100 p-2 flex gap-2 bg-slate-50/50 rounded-t-xl">
+                                    {['Summary', 'Breakdown', 'Letter'].map(tab => (
+                                        <button
+                                            key={tab}
+                                            onClick={() => setActiveTab(tab.toLowerCase())}
+                                            className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === tab.toLowerCase()
+                                                    ? 'bg-white text-blue-600 shadow-sm border border-slate-200'
+                                                    : 'text-slate-500 hover:bg-white hover:text-slate-700'
+                                                }`}
+                                        >
+                                            {tab}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="p-8 flex-1 overflow-y-auto bg-white rounded-b-xl">
+                                    {!result && !loading && (
+                                        <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
+                                            <Shield size={64} strokeWidth={1} />
+                                            <p className="mt-4 font-medium">Ready to analyze risk profile</p>
+                                        </div>
+                                    )}
+
+                                    {loading && !result && (
+                                        <div className="h-full flex flex-col items-center justify-center">
+                                            <div className="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+                                            <p className="mt-6 text-blue-600 font-mono animate-pulse font-medium">Running Neural Inference...</p>
+                                        </div>
+                                    )}
+
+                                    {result && activeTab === 'summary' && (
+                                        <div className="space-y-6 animate-[fadeIn_0.5s]">
+                                            <div className="grid grid-cols-2 gap-6">
+                                                <div className="p-6 bg-slate-50 rounded-xl border border-slate-100 shadow-sm">
+                                                    <div className="text-sm text-slate-500 font-medium uppercase tracking-wide">Client</div>
+                                                    <div className="text-2xl font-bold text-slate-800">{result.client_name}</div>
+                                                </div>
+                                                <div className="p-6 bg-slate-50 rounded-xl border border-slate-100 shadow-sm">
+                                                    <div className="text-sm text-slate-500 font-medium uppercase tracking-wide">Industry</div>
+                                                    <div className="text-2xl font-bold text-slate-800">{result.industry}</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl border border-blue-500/20 relative overflow-hidden shadow-xl text-white">
+                                                <div className="absolute top-0 right-0 p-32 bg-white/10 rounded-full blur-3xl -mr-16 -marginTop-16 transition-transform hover:scale-110"></div>
+                                                <div className="text-sm text-blue-100 font-medium mb-1 uppercase tracking-wider">Total Annual Premium</div>
+                                                <div className="text-5xl font-bold tracking-tight">
+                                                    ${result.final_premium.toLocaleString()}
+                                                </div>
+                                                <div className="mt-6 flex gap-4">
+                                                    <div className="px-3 py-1.5 bg-white/20 rounded-lg text-sm flex items-center gap-2 font-medium backdrop-blur-sm">
+                                                        <span className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.6)]"></span>
+                                                        {result.authority}
+                                                    </div>
+                                                    <div className="px-3 py-1.5 bg-white/20 rounded-lg text-sm flex items-center gap-2 font-medium backdrop-blur-sm">
+                                                        Risk Score: <span className="font-bold">{result.risk_score}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-6 bg-amber-50 rounded-xl border border-amber-100">
+                                                <h3 className="text-lg font-bold mb-3 text-amber-800 flex items-center gap-2">
+                                                    <Activity size={20} /> Coverage Analysis
+                                                </h3>
+                                                <p className="text-amber-900 leading-relaxed">
+                                                    {result.coverage_analysis}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {result && activeTab === 'breakdown' && (
+                                        <div className="space-y-4 font-mono animate-[fadeIn_0.5s]">
+                                            {Object.entries(result.calculation_details).map(([k, v]) => (
+                                                <div key={k} className="flex justify-between items-center p-4 bg-slate-50 rounded-lg border border-slate-100 hover:border-blue-300 transition shadow-sm group">
+                                                    <span className="text-slate-500 font-medium group-hover:text-blue-600 transition-colors">{k}</span>
+                                                    <span className="text-slate-800 font-bold">
+                                                        {typeof v === 'number' ? '$' + v.toLocaleString() : v}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {result && activeTab === 'letter' && (
+                                        <div className="p-10 bg-white text-slate-800 rounded-xl font-serif shadow-lg border border-slate-100 leading-loose whitespace-pre-wrap animate-[fadeIn_0.5s]">
+                                            {result.quote_letter}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

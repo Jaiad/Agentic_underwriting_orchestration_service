@@ -1,0 +1,21 @@
+
+        UNDERWRITING GUIDELINES 2025
+        
+        1. CONSTRUCTION (High Risk)
+           - Base Rate: $8.50 per $1,000 Revenue
+           - Modifiers: Height > 4 floors (+15%), Welding (+10%)
+           - Min Premium: $5,000
+           
+        2. TECHNOLOGY (Low Risk)
+           - Base Rate: $0.50 per $1,000 Revenue
+           - Modifiers: Cyber data storage (+20%)
+           - Min Premium: $1,200
+           
+        3. RETAIL (Low/Med Risk)
+           - Base Rate: $2.00 per $1,000 Revenue
+           - Modifiers: Mall location (-5%), Online sales (+10%)
+           
+        4. RESTAURANT (Med Risk)
+           - Base Rate: $4.00 per $1,000 Revenue
+           - Modifiers: Alcohol sales (+30%), Deep frying (+10%)
+        

@@ -1,0 +1,47 @@
+# AI Underwriting System - Upgrade History & Context
+# Created for future AI Agents to understand the evolution of this codebase.
+
+## SYSTEM OVERVIEW
+This project is an AI-powered Insurance Underwriting Orchestrator.
+It processes unstructured broker emails to generate formatted insurance quotes.
+
+## KEY CHANGES & ARCHITECTURE (As of Jan 2026)
+
+### 1. From Rest-API to LangChain
+- **Old State**: Direct calls to Google Gemini REST API using `fireworks_client.py`.
+- **New State**: 
+    - Implemented `RAGPipeline` in `src/core/rag_pipeline.py` using **LangChain LCEL**.
+    - Uses `FAISS` for local vector storage (removing hard dependency on MongoDB for RAG).
+    - Uses `ChatGoogleGenerativeAI` with model `gemini-2.0-flash-exp`.
+
+### 2. SSL & Network Handling
+- **Problem**: Corporate networks/proxies causing `CERTIFICATE_VERIFY_FAILED` errors.
+- **Solution**: 
+    - Created `src/core/ssl_handler.py`.
+    - This module aggressively patches `requests` and `httpx` and `urllib3` to ignore verification when `SSL_VERIFY=False` is set in `.env`.
+    - **CRITICAL**: This handler MUST be imported and configured at the start of any execution entry point.
+
+### 3. Google Gemini Model Issues
+- **Problem**: `gemini-1.5-flash` and `gemini-1.5-pro` were throwing 404/400 errors or "API Key Expired" (even with valid keys) via LangChain.
+- **Solution**: 
+    - Debugged and found `gemini-2.0-flash-exp` is the stable working model for the provided API key type.
+    - Updated `src/core/rag_pipeline.py` and `src/core/fireworks_client.py` to hardcode `gemini-2.0-flash-exp`.
+
+### 4. Database Dependency
+- **Problem**: MongoDB DNS queries were failing in the local environment `ConfigurationError: The DNS query name does not exist`.
+- **Solution**:
+    - Updated `src/core/vector_search.py` to wrap connection logic in a `try-except` block.
+    - Updated key pipeline steps (`industry_classifier`, `rate_discovery`, `coverage_analysis`, `risk_assessment`) to use the local `RAGPipeline` (FAISS) instead of MongoDB vector search.
+    - The system now works fully **offline** (without MongoDB) using the provided sample data in `data/`.
+
+## API KEYS
+- The google API key `AIzaSyAMNf...` is hardcoded in `.env` and identified as working.
+- **Do not revert** to the 'AIzaSyDZ...' key as it is expired.
+
+## ENTRY POINTS
+1. `terminal_demo.py`: The main proof-of-concept runner.
+2. `src/pipeline/langgraph_workflow.py`: Advanced state-machine implementation.
+
+## FUTURE RECOMMENDATIONS
+- If re-enabling MongoDB, ensure valid connection string and DNS resolution.
+- Keep `gemini-2.0-flash-exp` until 1.5 versions are stabilized for this specific API key tier.
